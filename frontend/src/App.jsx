@@ -8,6 +8,7 @@ import Home from "./pages/Home.jsx";
 import Watchlist from "./pages/Watchlist.jsx";
 import Liked from "./pages/Liked.jsx";
 import Profile from "./pages/Profile.jsx";
+import SearchResults from "./pages/SearchResults.jsx";
 
 export default function App() {
   return (
@@ -17,9 +18,10 @@ export default function App() {
       <LibraryProvider>
         <Router>
           <Routes>
-            {/* Public routes */}
-            <Route path="/"      element={<Landing />} />
-            <Route path="/login" element={<Login />} />
+            {/* Public routes — search works before sign-in */}
+            <Route path="/"       element={<Landing />} />
+            <Route path="/login"  element={<Login />} />
+            <Route path="/search" element={<SearchResults />} />
 
             {/* Protected routes — redirect to /login if not authenticated */}
             <Route

@@ -1,27 +1,111 @@
-import { fetchRecommendations } from "../services/mlService.js";
-import { fetchTrendingFromTMDB, fetchPoster } from "../services/tmdbService.js";
+import {
+  fetchRecommendations,
+  checkMlHealth,
+  MovieNotInDatasetError,
+  MlServiceUnavailableError,
+} from "../services/mlService.js";
+import {
+  fetchTrendingFromTMDB,
+  fetchMovieBrief,
+  searchMoviesOnTMDB,
+} from "../services/tmdbService.js";
 
-// ── Get recommendations from ML microservice ─────────────
+// ── Get recommendations from the ML microservice ──────────
+/**
+ * GET  /api/recommend?movieId=27205&title=Inception&topN=5
+ * POST /api/recommend    body: { movieId, movie, topN }
+ *
+ * `movieId` is preferred since it's the TMDB id returned by search, making the
+ * join with the ML dataset exact. `title` alone still works via fuzzy matching.
+ */
 export const getRecommendations = async (req, res, next) => {
   try {
-    const { movie } = req.body;
+    // Accept either verb so the frontend can use a cacheable GET
+    const source = req.method === "GET" ? req.query : req.body;
 
-    if (!movie)
-      return res.status(400).json({ message: "Movie title is required" });
+    const title = source.movie ?? source.title;
+    const movieId = source.movieId ?? source.movie_id;
+    const topN = Math.max(1, Math.min(20, parseInt(source.topN ?? source.top_n, 10) || 5));
 
-    // Call Python Flask ml-service
-    const recommendations = await fetchRecommendations(movie);
+    if (!title && movieId === undefined)
+      return res.status(400).json({ message: "Provide either a movie title or movieId" });
 
-    // Enrich each result with poster from TMDB
+    const { matchedTitle, strategy, recommendations } = await fetchRecommendations({
+      title,
+      movieId,
+      topN,
+    });
+
+    // Enrich with poster/rating/year so the client can render cards directly.
+    // Parallel because each is an independent TMDB lookup, and fetchMovieBrief
+    // swallows its own failures so one bad id can't reject the batch.
     const enriched = await Promise.all(
-      recommendations.map(async (rec) => ({
-        ...rec,
-        poster: await fetchPoster(rec.movie_id),
-      }))
+      recommendations.map(async (rec) => {
+        const brief = rec.movie_id ? await fetchMovieBrief(rec.movie_id) : {};
+        return {
+          movie_id:         rec.movie_id,
+          title:            rec.title,
+          similarity_score: rec.similarity_score,
+          poster:           brief.poster ?? "",
+          rating:           brief.rating ?? 0,
+          year:             brief.year ?? "",
+        };
+      })
     );
 
-    res.json({ movie, recommendations: enriched });
+    res.json({
+      requested: title ?? null,
+      matchedTitle,
+      strategy,
+      recommendations: enriched,
+    });
   } catch (err) {
+    // Movie simply isn't in the dataset snapshot — a normal outcome, not a fault
+    if (err instanceof MovieNotInDatasetError)
+      return res.status(404).json({ message: err.message, suggestions: err.suggestions });
+
+    // Service down or model unloaded — upstream dependency failure
+    if (err instanceof MlServiceUnavailableError)
+      return res.status(503).json({ message: err.message });
+
+    next(err);
+  }
+};
+
+// ── ML service health passthrough ────────────────────────
+export const getMlStatus = async (_req, res) => {
+  const health = await checkMlHealth();
+  res.status(health.model_loaded ? 200 : 503).json(health);
+};
+
+// ── Search movies by title ───────────────────────────────
+const MIN_QUERY_LENGTH = 2;
+
+/**
+ * GET /api/recommend/search?q=inception&page=1
+ *
+ * Public so the landing page search works before sign-in. Returns an empty
+ * result set rather than an error for short queries, which keeps the
+ * debounced client from having to special-case the transition states.
+ */
+export const searchMovies = async (req, res, next) => {
+  try {
+    const query = String(req.query.q ?? "").trim();
+    const page = Math.max(1, Math.min(500, parseInt(req.query.page, 10) || 1));
+
+    console.log(query);
+
+    if (query.length < MIN_QUERY_LENGTH)
+      return res.json({ query, results: [], page: 1, totalPages: 0, totalResults: 0 });
+
+    const data = await searchMoviesOnTMDB(query, page);
+
+    res.json({ query, ...data });
+  } catch (err) {
+    // A TMDB outage or bad key shouldn't surface as a generic 500
+    if (err.response?.status === 401)
+      return res.status(502).json({ message: "Movie search is misconfigured on the server" });
+
     next(err);
   }
 };

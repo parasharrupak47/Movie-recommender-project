@@ -1,12 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import SearchBar from "./SearchBar.jsx";
 
-// Primary navigation now lives in the left Sidebar. The top bar keeps a
-// minimal set so the two don't duplicate each other on wide screens.
-const NAV_ITEMS = [
-  { id: "explore", label: "Explore", icon: "⊙", path: "/" },
-];
+// Page navigation lives in the left Sidebar; the top bar carries search
+// and the account menu.
 
 // ── Avatar initials helper ───────────────────────────────
 function getInitials(user) {
@@ -19,7 +17,6 @@ function getInitials(user) {
 export default function Navbar({ onRegisterClick }) {
   const { isLoggedIn, user, logout } = useAuth();
   const navigate   = useNavigate();
-  const location   = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -49,36 +46,13 @@ export default function Navbar({ onRegisterClick }) {
         <span className="text-sm font-bold tracking-wide text-white">MOVIE MOJITO</span>
       </Link>
 
-      {/* Center nav */}
-      <nav className="hidden md:flex items-center gap-1">
-        {NAV_ITEMS.map((n) => {
-          const active = location.pathname === n.path;
-          return (
-            <Link
-              key={n.id}
-              to={n.path}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all no-underline ${
-                active
-                  ? "text-white bg-white/8 font-medium"
-                  : "text-white/40 hover:text-white/70"
-              }`}
-            >
-              <span className="text-xs">{n.icon}</span>
-              {n.label}
-              {active && (
-                <span className="ml-1 w-1.5 h-1.5 rounded-full bg-violet-500 inline-block" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
+      {/* Center: debounced movie search */}
+      <div className="flex-1 flex justify-center px-4 max-w-xl mx-auto">
+        <SearchBar className="w-full" />
+      </div>
 
       {/* Right actions */}
-      <div className="flex items-center gap-2">
-        <button className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white/70 transition-colors">
-          🔍
-        </button>
-
+      <div className="flex items-center gap-2 flex-shrink-0">
         {isLoggedIn ? (
           /* ── Logged-in state: avatar + dropdown ── */
           <div className="relative" ref={dropdownRef}>
