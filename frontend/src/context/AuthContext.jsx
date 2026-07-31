@@ -31,6 +31,11 @@ export function AuthProvider({ children }) {
     setIsLoggedIn(true);
   };
 
+  // ── Called after a profile edit so the navbar/avatar update instantly ──
+  const updateUser = (userData) => {
+    setUser((prev) => ({ ...prev, ...userData }));
+  };
+
   // ── Called on logout click ────────────────────────────────
   const logout = async () => {
     try {
@@ -43,7 +48,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn, loading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

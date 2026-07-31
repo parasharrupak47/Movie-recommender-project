@@ -12,11 +12,17 @@ venv/
 # Node
 node_modules/
 dist/
+.env
 .env.local
+backend/.env
+frontend/.env
 
-# ML artifacts (large files — use Git LFS or exclude)
+# ML artifacts — too large for GitHub's 100 MB limit; regenerate via training
+*.pkl
+*.h5
 ml/models/*.pkl
 ml/models/*.h5
+ml-service/models/*.pkl
 ml/data/raw/*.csv
 ml/data/processed/*.csv
 

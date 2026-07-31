@@ -13,7 +13,9 @@ const app = express();
 
 // ── Middleware ──────────────────────────────────────────
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
-app.use(express.json());
+// Avatars are sent as base64 data URLs, which exceed the 100kb default.
+// The profile controller enforces its own stricter per-field cap.
+app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
 // ── Routes ──────────────────────────────────────────────

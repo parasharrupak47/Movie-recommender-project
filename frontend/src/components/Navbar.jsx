@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
+// Primary navigation now lives in the left Sidebar. The top bar keeps a
+// minimal set so the two don't duplicate each other on wide screens.
 const NAV_ITEMS = [
-  { id: "explore",   label: "Explore",   icon: "⊙",  path: "/" },
-  { id: "watchlist", label: "Watchlist", icon: "🔖", path: "/watchlist" },
-  { id: "alerts",    label: "Alerts",    icon: "🔔", path: "/alerts" },
+  { id: "explore", label: "Explore", icon: "⊙", path: "/" },
 ];
 
 // ── Avatar initials helper ───────────────────────────────
@@ -102,9 +102,18 @@ export default function Navbar({ onRegisterClick }) {
             {/* Dropdown */}
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-52 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
-                <div className="px-4 py-3 border-b border-white/5">
-                  <p className="text-sm font-semibold text-white truncate">{user?.fullName}</p>
-                  <p className="text-xs text-white/40 truncate mt-0.5">@{user?.username}</p>
+                <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
+                  <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-violet-500 to-purple-700
+                                  flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                    {user?.avatar
+                      ? <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                      : getInitials(user)
+                    }
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{user?.fullName}</p>
+                    <p className="text-xs text-white/40 truncate mt-0.5">@{user?.username}</p>
+                  </div>
                 </div>
                 <div className="py-1">
                   <Link
@@ -115,11 +124,11 @@ export default function Navbar({ onRegisterClick }) {
                     <span>🏠</span> Home
                   </Link>
                   <Link
-                    to="/watchlist"
+                    to="/profile"
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors no-underline"
                   >
-                    <span>🔖</span> Watchlist
+                    <span>⚙</span> Edit Profile
                   </Link>
                 </div>
                 <div className="border-t border-white/5 py-1">

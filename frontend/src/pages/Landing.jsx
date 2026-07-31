@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import Navbar from "../components/Navbar.jsx";
+import Sidebar from "../components/Sidebar.jsx";
+import MovieCard from "../components/MovieCard.jsx";
 
 // ─────────────────────────────────────────────────────────
 // Helpers
@@ -156,42 +158,27 @@ function RegisterModal({ onClose }) {
 // Mock data — replace with real API calls later
 // ─────────────────────────────────────────────────────────
 const TALK_OF_THE_TOWN = [
-  { id: 1, title: "Avengers: Doomsday", sub: "Official Trailer", img: "https://image.tmdb.org/t/p/w300/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
-  { id: 2, title: "Spider-Man: Brave", sub: "Final Trailer", img: "https://image.tmdb.org/t/p/w300/qhb1qOilapbapxWQn9jtRCMwXJF.jpg" },
-  { id: 3, title: "Spider-Man: Brave", sub: "Final Trailer", img: "https://image.tmdb.org/t/p/w300/qhb1qOilapbapxWQn9jtRCMwXJF.jpg" },
-  { id: 4, title: "Jana Nayagan", sub: "New Movie", img: "https://image.tmdb.org/t/p/w300/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
-  { id: 5, title: "Clayface", sub: "Trailer", img: "https://image.tmdb.org/t/p/w300/wTnV3PCVW5O92JMrFvvrRcV39RU.jpg" },
-   { id: 6, title: "Avengers: Doomsday", sub: "Official Trailer", img: "https://image.tmdb.org/t/p/w300/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
-  { id: 7, title: "Jana Nayagan", sub: "New Movie", img: "https://image.tmdb.org/t/p/w300/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
-  { id: 8, title: "Clayface", sub: "Trailer", img: "https://image.tmdb.org/t/p/w300/wTnV3PCVW5O92JMrFvvrRcV39RU.jpg" },
+  { id: 1, title: "Avengers: Doomsday",   sub: "Official Trailer", rating: 8.7, img: "https://image.tmdb.org/t/p/w300/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
+  { id: 2, title: "Spider-Man: Brave",    sub: "Final Trailer",    rating: 7.9, img: "https://image.tmdb.org/t/p/w300/qhb1qOilapbapxWQn9jtRCMwXJF.jpg" },
+  { id: 3, title: "Ramayana: Part One",   sub: "Teaser",           rating: 9.2, img: "https://th.bing.com/th/id/OIP.hAL1jFR2LXaJKOfz0Os9QgHaLI?w=195&h=294&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
+  { id: 4, title: "Jana Nayagan",         sub: "New Movie",        rating: 6.4, img: "https://image.tmdb.org/t/p/w300/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
+  { id: 5, title: "Clayface",             sub: "Trailer",          rating: 5.8, img: "https://image.tmdb.org/t/p/w300/wTnV3PCVW5O92JMrFvvrRcV39RU.jpg" },
+  { id: 6, title: "The Odyssey",          sub: "Official Trailer", rating: 8.1, img: "https://image.tmdb.org/t/p/w300/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
+  { id: 7, title: "Toxic",                sub: "New Movie",        rating: 7.2, img: "https://image.tmdb.org/t/p/w300/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
+  { id: 8, title: "Night Shift",          sub: "Trailer",          rating: 4.5, img: "https://image.tmdb.org/t/p/w300/wTnV3PCVW5O92JMrFvvrRcV39RU.jpg" },
 ];
 
 const MOST_INTERESTED = [
-  { rank: 1, title: "Avengers: Doomsday", date: "18 Dec, 2026 · In Theatre", interest: "37.6K", img: "https://image.tmdb.org/t/p/w92/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
-  { rank: 2, title: "Spider-Man: Brave New World", date: "30 Jul, 2026 · In Theatre", interest: "31.7K", img: "https://image.tmdb.org/t/p/w92/qhb1qOilapbapxWQn9jtRCMwXJF.jpg" },
-  { rank: 3, title: "Ramayana: Part One", date: "06 Nov, 2026 · In Theatre", interest: "24K", img: "https://image.tmdb.org/t/p/w92/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
-  { rank: 4, title: "Toxic", date: "26 Aug, 2026 · In Theatre", interest: "21.3K", img: "https://image.tmdb.org/t/p/w92/rLb2cwF3Pazuxaj0sRXQ037tGI1.jpg" },
-  { rank: 5, title: "The Odyssey", date: "15 Oct, 2026 · In Theatre", interest: "18.9K", img: "https://image.tmdb.org/t/p/w92/oYuLELAbFNqJhVzC7OcAG0UOFzz.jpg" },
+  { rank: 1, title: "Avengers: Doomsday", date: "18 Dec, 2026 · In Theatre", interest: "37.6K", img: "https://image.tmdb.org/t/p/w300/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
+  { rank: 2, title: "Spider-Man: Brave New World", date: "30 Jul, 2026 · In Theatre", interest: "31.7K", img: "https://image.tmdb.org/t/p/w300/qhb1qOilapbapxWQn9jtRCMwXJF.jpg" },
+  { rank: 3, title: "Ramayana: Part One", date: "06 Nov, 2026 · In Theatre", interest: "24K", img: "https://th.bing.com/th/id/OIP.hAL1jFR2LXaJKOfz0Os9QgHaLI?w=195&h=294&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
+  { rank: 4, title: "Toxic", date: "26 Aug, 2026 · In Theatre", interest: "21.3K", img: "https://th.bing.com/th/id/OIP.f8QQ0-ikH4Tl2DrGBnPSSwHaJQ?w=137&h=180&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
+  { rank: 5, title: "The Odyssey", date: "15 Oct, 2026 · In Theatre", interest: "18.9K", img: "https://i.pinimg.com/736x/6e/b5/5f/6eb55f39cad76949e32f4ebcd1a833ae.jpg" },
 ];
-
-// ─────────────────────────────────────────────────────────
-// Nav icon button
-// ─────────────────────────────────────────────────────────
-function NavIcon({ children, active = false }) {
-  return (
-    <button className={`relative flex flex-col items-center gap-0.5 px-3 py-1 text-sm transition-colors ${active ? "text-white" : "text-white/40 hover:text-white/70"}`}>
-      {children}
-      {active && <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-violet-500" />}
-    </button>
-  );
-}
 
 // ─────────────────────────────────────────────────────────
 // Inline SVG fallback — never makes a network request
 // ─────────────────────────────────────────────────────────
-const FALLBACK_POSTER =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'%3E%3Crect width='300' height='450' fill='%231a1a2e'/%3E%3Ctext x='150' y='230' font-size='48' text-anchor='middle' fill='%23ffffff40'%3E🎬%3C/text%3E%3C/svg%3E";
-
 const FALLBACK_THUMB =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='92' height='138' viewBox='0 0 92 138'%3E%3Crect width='92' height='138' fill='%231a1a2e'/%3E%3Ctext x='46' y='74' font-size='28' text-anchor='middle' fill='%23ffffff40'%3E🎬%3C/text%3E%3C/svg%3E";
 
@@ -199,37 +186,6 @@ const handleImgError = (fallback) => (e) => {
   // Prevent infinite loop if the fallback itself somehow fails
   if (e.target.src !== fallback) e.target.src = fallback;
 };
-
-// ─────────────────────────────────────────────────────────
-// Movie card
-// ─────────────────────────────────────────────────────────
-function MovieCard({ movie, onClick }) {
-  return (
-    <div
-      className="group cursor-pointer w-full h-full"
-      onClick={() => onClick && onClick(movie)}
-    >
-      <div className="relative overflow-hidden rounded-xl bg-white/5">
-        <img
-          src={movie.img}
-          alt={movie.title}
-          className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
-          onError={handleImgError(FALLBACK_POSTER)}
-        />
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-          <button className="w-full bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold py-2 rounded-lg transition-colors">
-            + Watchlist
-          </button>
-        </div>
-      </div>
-      <div className="mt-2 px-0.5">
-        <p className="text-sm font-semibold text-white truncate">{movie.title}</p>
-        <p className="text-xs text-white/40 mt-0.5 truncate">{movie.sub}</p>
-      </div>
-    </div>
-  );
-}
 
 // ─────────────────────────────────────────────────────────
 // Leaderboard row
@@ -269,8 +225,15 @@ export default function Landing() {
   const { isLoggedIn, loading, user } = useAuth();
   const navigate = useNavigate();
 
+  // Liked / watchlist state now lives in LibraryContext, backed by the database.
+  // Logged-out users who tap a card action get the register prompt instead.
+  const promptRegister = () => setShowModal(true);
+
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white flex overflow-hidden">
+
+      {/* ── Left rail ─────────────────────────────────── */}
+      <Sidebar />
 
       {/* ── Main column ───────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -332,9 +295,13 @@ export default function Landing() {
                 <button className="text-xs text-violet-400 hover:text-violet-300 transition-colors font-medium">See all →</button>
               </div>
 
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-6">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-8 gap-3">
                 {TALK_OF_THE_TOWN.map((movie) => (
-                  <MovieCard key={movie.id} movie={movie} />
+                  <MovieCard
+                    key={movie.id}
+                    movie={movie}
+                    onRequireAuth={promptRegister}
+                  />
                 ))}
               </div>
             </section>
@@ -347,10 +314,18 @@ export default function Landing() {
                 </h2>
                 <button className="text-xs text-violet-400 hover:text-violet-300 transition-colors font-medium">See all →</button>
               </div>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-6">
-                {TALK_OF_THE_TOWN.slice().reverse().map((movie) => (
-                  <MovieCard key={`t-${movie.id}`} movie={{ ...movie, sub: "Trending" }} />
-                ))}
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-8 gap-3">
+                {TALK_OF_THE_TOWN.slice().reverse().map((movie) => {
+                  // Distinct id so a movie can be toggled independently in each row
+                  const trendingId = `trending-${movie.id}`;
+                  return (
+                    <MovieCard
+                      key={trendingId}
+                      movie={{ ...movie, id: trendingId }}
+                      onRequireAuth={promptRegister}
+                    />
+                  );
+                })}
               </div>
             </section>
           </div>

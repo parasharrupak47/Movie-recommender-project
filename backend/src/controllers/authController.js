@@ -1,15 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { signAccessToken, signRefreshToken, setTokenCookies, verifyRefreshToken, clearTokenCookies } from "../services/tokenService.js";
-
-// ── Helpers ──────────────────────────────────────────────
-const sanitizeUser = (user) => ({
-  id:       user._id,
-  username: user.username,
-  fullName: user.fullName,
-  email:    user.email,
-  avatar:   user.avatar || "",
-});
+import { sanitizeUser } from "../utils/sanitizeUser.js";
 
 // ── Register ─────────────────────────────────────────────
 export const register = async (req, res, next) => {
