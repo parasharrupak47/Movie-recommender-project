@@ -2,9 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { LibraryProvider } from "./context/LibraryContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import Landing from "./pages/Landing.jsx";
-import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
+import Login from "./pages/Login.jsx";
+import Recommendation from "./pages/Recommendation.jsx";
 import Watchlist from "./pages/Watchlist.jsx";
 import Liked from "./pages/Liked.jsx";
 import Profile from "./pages/Profile.jsx";
@@ -19,16 +19,16 @@ export default function App() {
         <Router>
           <Routes>
             {/* Public routes — search works before sign-in */}
-            <Route path="/"       element={<Landing />} />
+            <Route path="/"       element={<Home />} />
             <Route path="/login"  element={<Login />} />
             <Route path="/search" element={<SearchResults />} />
 
             {/* Protected routes — redirect to /login if not authenticated */}
             <Route
-              path="/home"
+              path="/Recommendation"
               element={
                 <ProtectedRoute>
-                  <Home />
+                  <Recommendation />
                 </ProtectedRoute>
               }
             />
