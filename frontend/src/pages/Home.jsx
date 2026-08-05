@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -155,64 +155,14 @@ function RegisterModal({ onClose }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// Mock data — replace with real API calls later
+// Skeleton loading component
 // ─────────────────────────────────────────────────────────
-const TALK_OF_THE_TOWN = [
-  { id: 1, title: "Avengers: Doomsday",   sub: "Official Trailer", rating: 8.7, img: "https://image.tmdb.org/t/p/w300/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
-  { id: 2, title: "Spider-Man: Brave",    sub: "Final Trailer",    rating: 7.9, img: "https://image.tmdb.org/t/p/w300/qhb1qOilapbapxWQn9jtRCMwXJF.jpg" },
-  { id: 3, title: "Ramayana: Part One",   sub: "Teaser",           rating: 9.2, img: "https://th.bing.com/th/id/OIP.hAL1jFR2LXaJKOfz0Os9QgHaLI?w=195&h=294&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
-  { id: 4, title: "Jana Nayagan",         sub: "New Movie",        rating: 6.4, img: "https://image.tmdb.org/t/p/w300/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
-  { id: 5, title: "Clayface",             sub: "Trailer",          rating: 5.8, img: "https://image.tmdb.org/t/p/w300/wTnV3PCVW5O92JMrFvvrRcV39RU.jpg" },
-  { id: 6, title: "The Odyssey",          sub: "Official Trailer", rating: 8.1, img: "https://image.tmdb.org/t/p/w300/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
-  { id: 7, title: "Toxic",                sub: "New Movie",        rating: 7.2, img: "https://image.tmdb.org/t/p/w300/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
-  { id: 8, title: "Night Shift",          sub: "Trailer",          rating: 4.5, img: "https://image.tmdb.org/t/p/w300/wTnV3PCVW5O92JMrFvvrRcV39RU.jpg" },
-];
-
-const MOST_INTERESTED = [
-  { rank: 1, title: "Avengers: Doomsday", date: "18 Dec, 2026 · In Theatre", interest: "37.6K", img: "https://image.tmdb.org/t/p/w300/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
-  { rank: 2, title: "Spider-Man: Brave New World", date: "30 Jul, 2026 · In Theatre", interest: "31.7K", img: "https://image.tmdb.org/t/p/w300/qhb1qOilapbapxWQn9jtRCMwXJF.jpg" },
-  { rank: 3, title: "Ramayana: Part One", date: "06 Nov, 2026 · In Theatre", interest: "24K", img: "https://th.bing.com/th/id/OIP.hAL1jFR2LXaJKOfz0Os9QgHaLI?w=195&h=294&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
-  { rank: 4, title: "Toxic", date: "26 Aug, 2026 · In Theatre", interest: "21.3K", img: "https://th.bing.com/th/id/OIP.f8QQ0-ikH4Tl2DrGBnPSSwHaJQ?w=137&h=180&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
-  { rank: 5, title: "The Odyssey", date: "15 Oct, 2026 · In Theatre", interest: "18.9K", img: "https://i.pinimg.com/736x/6e/b5/5f/6eb55f39cad76949e32f4ebcd1a833ae.jpg" },
-];
-
-// ─────────────────────────────────────────────────────────
-// Inline SVG fallback — never makes a network request
-// ─────────────────────────────────────────────────────────
-const FALLBACK_THUMB =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='92' height='138' viewBox='0 0 92 138'%3E%3Crect width='92' height='138' fill='%231a1a2e'/%3E%3Ctext x='46' y='74' font-size='28' text-anchor='middle' fill='%23ffffff40'%3E🎬%3C/text%3E%3C/svg%3E";
-
-const handleImgError = (fallback) => (e) => {
-  // Prevent infinite loop if the fallback itself somehow fails
-  if (e.target.src !== fallback) e.target.src = fallback;
-};
-
-// ─────────────────────────────────────────────────────────
-// Leaderboard row
-// ─────────────────────────────────────────────────────────
-function LeaderboardRow({ item }) {
+function MovieCardSkeleton() {
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-white/5 last:border-0 hover:bg-white/3 rounded-lg px-1 transition-colors cursor-pointer group">
-      {/* Rank */}
-      <span className="text-3xl font-black text-white/10 group-hover:text-white/20 transition-colors w-8 text-center leading-none select-none">
-        {item.rank}
-      </span>
-      {/* Poster */}
-      <div className="w-10 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
-        <img
-          src={item.img} alt={item.title}
-          className="w-full h-full object-cover"
-          onError={handleImgError(FALLBACK_THUMB)}
-        />
-      </div>
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-white truncate">{item.title}</p>
-        <p className="text-xs text-white/35 mt-0.5">{item.date}</p>
-        <p className="text-xs font-semibold text-orange-400 mt-1 flex items-center gap-1">
-          <span>🔥</span> {item.interest} Interested
-        </p>
-      </div>
+    <div className="animate-pulse">
+      <div className="bg-white/5 rounded-xl aspect-[3/4] mb-2" />
+      <div className="h-3 bg-white/5 rounded w-3/4 mb-1" />
+      <div className="h-2 bg-white/5 rounded w-1/2" />
     </div>
   );
 }
@@ -222,8 +172,25 @@ function LeaderboardRow({ item }) {
 // ─────────────────────────────────────────────────────────
 export default function Landing() {
   const [showModal, setShowModal] = useState(false);
+  const [trending, setTrending] = useState([]);
+  const [loadingMovies, setLoadingMovies] = useState(true);
   const { isLoggedIn, loading, user } = useAuth();
   const navigate = useNavigate();
+
+  // Fetch trending movies from TMDB on mount
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const { data } = await api.get("/api/recommend/trending");
+        setTrending(data.trending || []);
+      } catch (err) {
+        console.error("Failed to fetch trending movies:", err);
+      } finally {
+        setLoadingMovies(false);
+      }
+    };
+    fetchTrending();
+  }, []);
 
   // Liked / watchlist state now lives in LibraryContext, backed by the database.
   // Logged-out users who tap a card action get the register prompt instead.
@@ -292,18 +259,33 @@ export default function Landing() {
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
                   <span>📢</span> Talk Of The Town
                 </h2>
-                <button className="text-xs text-violet-400 hover:text-violet-300 transition-colors font-medium">See all →</button>
               </div>
 
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-8 gap-3">
-                {TALK_OF_THE_TOWN.map((movie) => (
-                  <MovieCard
-                    key={movie.id}
-                    movie={movie}
-                    onRequireAuth={promptRegister}
-                  />
-                ))}
-              </div>
+              {loadingMovies ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-8 gap-3">
+                  {Array(8).fill(0).map((_, i) => (
+                    <MovieCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : trending.length > 0 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-8 gap-3">
+                  {trending.slice(0, 8).map((movie) => (
+                    <MovieCard
+                      key={movie.movie_id}
+                      movie={{
+                        id: movie.movie_id,
+                        title: movie.title,
+                        rating: movie.rating,
+                        img: movie.poster,
+                      }}
+                      onRequireAuth={promptRegister}
+                      onClick={() => navigate(`/movie/${movie.movie_id}`)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-white/40">No movies available at the moment.</p>
+              )}
             </section>
 
             {/* Trending section */}
@@ -312,41 +294,51 @@ export default function Landing() {
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
                   <span>🔥</span> Trending This Week
                 </h2>
-                <button className="text-xs text-violet-400 hover:text-violet-300 transition-colors font-medium">See all →</button>
               </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-8 gap-3">
-                {TALK_OF_THE_TOWN.slice().reverse().map((movie) => {
-                  // Distinct id so a movie can be toggled independently in each row
-                  const trendingId = `trending-${movie.id}`;
-                  return (
+
+              {loadingMovies ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-8 gap-3">
+                  {Array(8).fill(0).map((_, i) => (
+                    <MovieCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : trending.length > 8 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 2xl:grid-cols-8 gap-3">
+                  {trending.slice(8, 16).map((movie) => (
                     <MovieCard
-                      key={trendingId}
-                      movie={{ ...movie, id: trendingId }}
+                      key={`trending-${movie.movie_id}`}
+                      movie={{
+                        id: movie.movie_id,
+                        title: movie.title,
+                        rating: movie.rating,
+                        img: movie.poster,
+                      }}
                       onRequireAuth={promptRegister}
+                      onClick={() => navigate(`/movie/${movie.movie_id}`)}
                     />
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-white/40">No additional trending movies available.</p>
+              )}
             </section>
           </div>
 
-          {/* Right: Most Interested leaderboard */}
+          {/* Right: CTA sidebar for logged-out/logged-in users */}
           <aside className="hidden xl:flex flex-col w-80 flex-shrink-0 border-l border-white/5 px-5 py-6 overflow-y-auto bg-[#0f0f0f]">
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <span>🔥</span> Most Interested
+                <span>🎬</span> Discover Movies
               </h3>
-              <button className="flex items-center gap-1 text-xs text-white/40 hover:text-white/70 bg-white/5 border border-white/8 rounded-full px-3 py-1 transition-colors">
-                All Time <span className="text-white/30">▾</span>
-              </button>
             </div>
 
-            {/* Leaderboard list */}
-            <div className="flex flex-col">
-              {MOST_INTERESTED.map((item) => (
-                <LeaderboardRow key={item.rank} item={item} />
-              ))}
+            {/* Info card */}
+            <div className="p-4 bg-white/5 border border-white/8 rounded-xl mb-4">
+              <p className="text-sm font-semibold text-white mb-1">Search & Explore</p>
+              <p className="text-xs text-white/40 mb-3">
+                Use the search bar above to find movies and get ML-powered recommendations.
+              </p>
             </div>
 
             {/* Divider + CTA */}
@@ -368,10 +360,10 @@ export default function Landing() {
                   <p className="text-sm font-semibold text-white mb-1">Welcome back, {user?.username}!</p>
                   <p className="text-xs text-white/40 mb-3">Head to your home feed for personalised picks.</p>
                   <button
-                    onClick={() => navigate("/home")}
+                    onClick={() => navigate("/recommendation")}
                     className="w-full bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold py-2 rounded-lg transition-all"
                   >
-                    Go to Home →
+                    Go to Recommendations →
                   </button>
                 </div>
               )}
