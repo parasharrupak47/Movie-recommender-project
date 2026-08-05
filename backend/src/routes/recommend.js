@@ -4,6 +4,7 @@ import {
   getTrending,
   searchMovies,
   getMlStatus,
+  getMovieDetails,
 } from "../controllers/recommendController.js";
 
 const router = Router();
@@ -16,6 +17,9 @@ router.get("/trending", getTrending);
 
 // GET /api/recommend/status — reports whether the ML model is loaded
 router.get("/status", getMlStatus);
+
+// GET /api/recommend/movie/:id — full movie details
+router.get("/movie/:id", getMovieDetails);
 
 // GET  /api/recommend?movieId=27205&topN=5
 // POST /api/recommend   body: { movieId, movie, topN }

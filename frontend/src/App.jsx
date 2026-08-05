@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { LibraryProvider } from "./context/LibraryContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -9,6 +9,7 @@ import Watchlist from "./pages/Watchlist.jsx";
 import Liked from "./pages/Liked.jsx";
 import Profile from "./pages/Profile.jsx";
 import SearchResults from "./pages/SearchResults.jsx";
+import MovieDetail from "./pages/MovieDetail.jsx";
 
 export default function App() {
   return (
@@ -22,10 +23,19 @@ export default function App() {
             <Route path="/"       element={<Home />} />
             <Route path="/login"  element={<Login />} />
             <Route path="/search" element={<SearchResults />} />
+            <Route path="/movie/:id" element={<MovieDetail />} />
 
             {/* Protected routes — redirect to /login if not authenticated */}
             <Route
-              path="/Recommendation"
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <Recommendation />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recommendation"
               element={
                 <ProtectedRoute>
                   <Recommendation />
@@ -56,6 +66,9 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Catch-all route — redirect any unmatched path to landing */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
       </LibraryProvider>

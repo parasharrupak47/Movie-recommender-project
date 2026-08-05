@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api.js";
 import MovieCard from "./MovieCard.jsx";
 
@@ -13,6 +14,7 @@ import MovieCard from "./MovieCard.jsx";
  * @param {number} topN
  */
 export default function RecommendationRow({ seedMovie, topN = 5 }) {
+  const navigate = useNavigate();
   const [items, setItems]     = useState([]);
   const [matched, setMatched] = useState("");
   const [loading, setLoading] = useState(true);
@@ -117,6 +119,7 @@ export default function RecommendationRow({ seedMovie, topN = 5 }) {
               img:    movie.poster,
               rating: movie.rating,
             }}
+            onClick={(m) => navigate(`/movie/${m.id}`)}
           />
         ))}
       </div>

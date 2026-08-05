@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import api from "../services/api.js";
 import Navbar from "../components/Navbar.jsx";
 import Sidebar from "../components/Sidebar.jsx";
@@ -14,6 +14,7 @@ import RecommendationRow from "../components/RecommendationRow.jsx";
  */
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const query = (searchParams.get("q") ?? "").trim();
 
   const [results, setResults] = useState([]);
@@ -141,6 +142,7 @@ export default function SearchResults() {
                       img:    movie.poster,
                       rating: movie.rating,
                     }}
+                    onClick={(m) => navigate(`/movie/${m.id}`)}
                   />
                 ))}
               </div>

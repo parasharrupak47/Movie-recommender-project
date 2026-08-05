@@ -4,7 +4,7 @@ import api from "../services/api.js";
 import { useDebounce } from "../hooks/useDebounce.js";
 
 const MIN_QUERY_LENGTH = 2;
-const DEBOUNCE_MS = 400;
+const DEBOUNCE_MS = 100;
 const MAX_SUGGESTIONS = 6;
 
 const FALLBACK_THUMB =

@@ -8,7 +8,37 @@ import {
   fetchTrendingFromTMDB,
   fetchMovieBrief,
   searchMoviesOnTMDB,
+  fetchMovieDetails,
 } from "../services/tmdbService.js";
+
+// ── Get full movie details from TMDB ──────────────────────
+/**
+ * GET /api/recommend/movie/:id
+ * 
+ * Fetches comprehensive movie details including cast, crew, genres, runtime, etc.
+ */
+export const getMovieDetails = async (req, res, next) => {
+  try {
+    const movieId = parseInt(req.params.id, 10);
+
+    if (!movieId || isNaN(movieId)) {
+      return res.status(400).json({ message: "Invalid movie ID" });
+    }
+
+    const details = await fetchMovieDetails(movieId);
+
+    if (!details) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+
+    res.json(details);
+  } catch (err) {
+    if (err.response?.status === 404) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+    next(err);
+  }
+};
 
 // ── Get recommendations from the ML microservice ──────────
 /**
