@@ -97,7 +97,7 @@ export default function TrailerModal({ trailerUrl, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* 16:9 aspect ratio container */}
-        <div className="relative w-full pt-[56.25%] bg-black rounded-xl overflow-hidden shadow-2xl shadow-black/80">
+        <div className="relative w-full pt-[56.25%] bg-black rounded-xl ovFwatcgerflow-hidden shadow-2xl shadow-black/80">
           <iframe
             className="absolute inset-0 w-full h-full"
             src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}

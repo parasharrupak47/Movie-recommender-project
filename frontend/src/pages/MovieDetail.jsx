@@ -199,7 +199,7 @@ export default function MovieDetail() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => toggleWatchlist({
                         id: movie.movie_id,
@@ -207,13 +207,20 @@ export default function MovieDetail() {
                         img: movie.poster,
                         rating: movie.rating,
                       })}
-                      className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                      className={`group relative px-5 py-2 bg-black/40 backdrop-blur-md border-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 overflow-hidden hover:scale-105 hover:shadow-lg ${
                         inWatchlist
-                          ? "bg-emerald-500/20 border-2 border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/30"
-                          : "bg-violet-600 hover:bg-violet-500 border-2 border-violet-500"
+                          ? "border-emerald-500/60 text-emerald-400 hover:shadow-emerald-500/50"
+                          : "border-violet-500/60 text-violet-300 hover:shadow-violet-500/50"
                       }`}
                     >
-                      {inWatchlist ? "✓ In Watchlist" : "+ Add to Watchlist"}
+                      <span className="relative z-10 flex items-center gap-1.5">{inWatchlist ? "✓ In Watchlist" : "+ Add to Watchlist"}
+                      </span>
+                      {/* Animated underline - expands from center with gradient */}
+                      <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 transition-all duration-300 ease-out group-hover:w-full ${
+                        inWatchlist 
+                          ? "bg-gradient-to-r from-transparent via-emerald-400 to-transparent" 
+                          : "bg-gradient-to-r from-transparent via-blue-500 to-transparent"
+                      }`}></span>
                     </button>
 
                     <button
@@ -223,21 +230,27 @@ export default function MovieDetail() {
                         img: movie.poster,
                         rating: movie.rating,
                       })}
-                      className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 border-2 ${
+                      className={`group relative px-5 py-2 bg-black/40 backdrop-blur-md border-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 overflow-hidden hover:scale-105 hover:shadow-lg ${
                         liked
-                          ? "bg-rose-500/20 border-rose-500/50 text-rose-400 hover:bg-rose-500/30"
-                          : "bg-white/10 border-white/20 hover:bg-white/15"
+                          ? "border-rose-500/60 text-rose-400 hover:shadow-rose-500/50"
+                          : "border-white/40 text-white hover:shadow-blue-500/50"
                       }`}
                     >
-                      {liked ? "❤️ Liked" : "🤍 Like"}
+                      <span className="relative z-10 flex items-center gap-1.5">{liked ? "❤️ Liked" : "🤍 Like"}
+                      </span>
+                      {/* Animated underline - expands from center with gradient */}
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent transition-all duration-300 ease-out group-hover:w-full"></span>
                     </button>
 
                     {movie.trailer && (
                       <button
                         onClick={() => setShowTrailer(true)}
-                        className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-lg font-semibold transition-all flex items-center gap-2 border-2 border-red-500"
+                        className="group relative px-5 py-2 bg-black/40 backdrop-blur-md border-2 border-green-500/60 text-green-400 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-1.5 overflow-hidden hover:scale-105 hover:shadow-lg hover:shadow-green-500/50"
                       >
-                        ▶️ Watch Trailer
+                        <span className="relative z-10 flex items-center gap-1.5">▶️ Watch Trailer
+                        </span>
+                        {/* Animated underline - expands from center with gradient */}
+                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent transition-all duration-300 ease-out group-hover:w-full"></span>
                       </button>
                     )}
                   </div>
