@@ -6,7 +6,24 @@ without embedding Python. Model artifacts are loaded once at import time —
 the similarity matrix is large, so per-request loading would be untenable.
 """
 
-import os
+import os, urllib.request
+
+MODEL_DIR = os.environ.get(
+    "MODEL_DIR",
+    os.path.join(os.path.dirname(__file__), "models"),
+)
+os.makedirs(MODEL_DIR, exist_ok=True)
+
+FILES = {
+    "movie_dict.pkl": "https://huggingface.co/parasharrupak47/Movie-Recommender-Artifacts/resolve/main/movie_dict.pkl",
+    "movies.pkl": "https://huggingface.co/parasharrupak47/Movie-Recommender-Artifacts/resolve/main/movies.pkl",
+    "similarity.pkl": "https://huggingface.co/parasharrupak47/Movie-Recommender-Artifacts/resolve/main/similarity.pkl",
+}
+for fname, url in FILES.items():
+    path = os.path.join(MODEL_DIR, fname)
+    if not os.path.exists(path):
+        urllib.request.urlretrieve(url, path)
+
 import logging
 
 from flask import Flask, request, jsonify
@@ -24,10 +41,6 @@ app = Flask(__name__)
 ALLOWED_ORIGIN = os.environ.get("BACKEND_URL", "http://localhost:8000")
 CORS(app, origins=[ALLOWED_ORIGIN])
 
-MODEL_DIR = os.environ.get(
-    "MODEL_DIR",
-    os.path.join(os.path.dirname(__file__), "models"),
-)
 
 DEFAULT_TOP_N = 5
 MAX_TOP_N = 20
