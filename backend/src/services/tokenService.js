@@ -15,7 +15,9 @@ export function signAccessToken(userId) {
  * @returns {string} Signed JWT string — expires in 7 days.
  */
 export function signRefreshToken(userId) {
-  return jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: "7d",
+  });
 }
 
 /**
@@ -49,14 +51,14 @@ export function setTokenCookies(res, accessToken, refreshToken) {
 
   res.cookie("access_token", accessToken, {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "none",
     secure: isProduction,
     maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days in ms
   });
 
   res.cookie("refresh_token", refreshToken, {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "none",
     secure: isProduction,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
   });
