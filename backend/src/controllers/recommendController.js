@@ -123,7 +123,7 @@ export const searchMovies = async (req, res, next) => {
     const query = String(req.query.q ?? "").trim();
     const page = Math.max(1, Math.min(500, parseInt(req.query.page, 10) || 1));
 
-    console.log(query);
+    // console.log(query);
 
     if (query.length < MIN_QUERY_LENGTH)
       return res.json({ query, results: [], page: 1, totalPages: 0, totalResults: 0 });
