@@ -7,6 +7,8 @@ FILES = {
     "movie_dict.pkl": "https://huggingface.co/parasharrupak47/Movie-Recommender-Artifacts/resolve/main/movie_dict.pkl",
     "movies.pkl": "https://huggingface.co/parasharrupak47/Movie-Recommender-Artifacts/resolve/main/movies.pkl",
     "similarity.pkl": "https://huggingface.co/parasharrupak47/Movie-Recommender-Artifacts/resolve/main/similarity.pkl",
+    "cv.pkl": "https://huggingface.co/parasharrupak47/Movie-Recommender-Artifacts/resolve/main/cv.pkl",
+    "vectors.pkl": "https://huggingface.co/parasharrupak47/Movie-Recommender-Artifacts/resolve/main/vectors.pkl",
 }
 for fname, url in FILES.items():
     path = os.path.join(MODEL_DIR, fname)

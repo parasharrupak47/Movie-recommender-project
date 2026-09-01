@@ -118,6 +118,7 @@ export default function RecommendationRow({ seedMovie, topN = 5 }) {
               title:  movie.title,
               img:    movie.poster,
               rating: movie.rating,
+              similarity_score: movie.similarity_score,
             }}
             onClick={(m) => navigate(`/movie/${m.id}`)}
           />

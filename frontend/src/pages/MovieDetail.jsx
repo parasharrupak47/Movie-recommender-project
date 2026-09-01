@@ -325,7 +325,7 @@ export default function MovieDetail() {
             )}
 
             {/* Similar Movies */}
-            {movie.similar.length > 0 && (
+            {movie?.similar?.length > 0 && (
               <section>
                 <h2 className="text-2xl font-bold mb-6">Similar Movies</h2>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
@@ -337,6 +337,7 @@ export default function MovieDetail() {
                         title: similarMovie.title,
                         img: similarMovie.poster,
                         rating: similarMovie.rating,
+                        similarity_score: similarMovie.similarity_score,
                       }}
                       onClick={(m) => navigate(`/movie/${m.id}`)}
                     />

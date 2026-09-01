@@ -1,5 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
+import { fetchRecommendations } from "./mlService.js";
 
 dotenv.config();
 
@@ -145,7 +146,8 @@ export const fetchMovieDetails = async (movieId) => {
     url: `${TMDB_BASE}/movie/${movieId}`,
     params: {
       api_key: API_KEY,
-      append_to_response: "credits,videos,similar",
+      // append_to_response: "credits,videos,similar",
+      append_to_response: "credits,videos",
     },
     timeout: 10000,
   });
@@ -164,13 +166,32 @@ export const fetchMovieDetails = async (movieId) => {
     (v) => v.type === "Trailer" && v.site === "YouTube"
   );
 
-  // Extract similar movies
-  const similar = movie.similar?.results?.slice(0, 6).map((m) => ({
-    movie_id: m.id,
-    title: m.title,
-    poster: m.poster_path ? `${TMDB_IMG}${m.poster_path}` : "",
-    rating: m.vote_average ?? 0,
-  })) || [];
+  // // Extract similar movies
+  // const similar = movie.similar?.results?.slice(0, 6).map((m) => ({
+  //   movie_id: m.id,
+  //   title: m.title,
+  //   poster: m.poster_path ? `${TMDB_IMG}${m.poster_path}` : "",
+  //   rating: m.vote_average ?? 0,
+  // })) || [];
+
+  let similar = [];
+  try {
+    const recommendationsData = await fetchRecommendations({ title: movie.title, movieId: movie.id, topN: 5 });
+    similar = await Promise.all(
+      (recommendationsData.recommendations || []).map(async (rec) => {
+        const brief = rec.movie_id ? await fetchMovieBrief(rec.movie_id) : {};
+        return {
+          movie_id: rec.movie_id,
+          title: rec.title,
+          poster: brief.poster ?? "",
+          rating: brief.rating ?? 0,
+          similarity_score: rec.similarity_score,
+        };
+      })
+    );
+  } catch (err) {
+    console.error(`Failed to fetch ML recommendations for ${movie.title}:`, err.message);
+  }
 
   return {
     movie_id: movie.id,

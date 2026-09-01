@@ -24,7 +24,12 @@ function HeartIcon({ filled }) {
 function PlusIcon() {
   return (
     <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+      <path
+        d="M12 5v14M5 12h14"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -57,15 +62,16 @@ function CheckIcon() {
  */
 export default function MovieCard({ movie, onRequireAuth, onClick }) {
   const { isLoggedIn } = useAuth();
-  const { isLiked, isInWatchlist, isPending, toggleLike, toggleWatchlist } = useLibrary();
+  const { isLiked, isInWatchlist, isPending, toggleLike, toggleWatchlist } =
+    useLibrary();
 
-  const liked       = isLiked(movie.id);
+  const liked = isLiked(movie.id);
   const inWatchlist = isInWatchlist(movie.id);
-  const busy        = isPending(movie.id);
-  const rating      = Number(movie.rating) || 0;
+  const busy = isPending(movie.id);
+  const rating = Number(movie.rating) || 0;
 
   const handleLike = (e) => {
-    e.stopPropagation();                       // don't fire the card's onClick
+    e.stopPropagation(); // don't fire the card's onClick
     if (!isLoggedIn) return onRequireAuth?.();
     toggleLike(movie);
   };
@@ -101,6 +107,13 @@ export default function MovieCard({ movie, onRequireAuth, onClick }) {
         {/* Scrim keeps the heart legible on light posters */}
         <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
 
+        {/* Similarity Score Badge — top left */}
+        {movie.similarity_score != null && (
+          <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md border border-violet-500/50 text-[10px] font-bold text-violet-300">
+            {(movie.similarity_score * 100).toFixed(0)}% Match
+          </div>
+        )}
+
         {/* Heart toggle — top right */}
         <button
           onClick={handleLike}
@@ -112,9 +125,10 @@ export default function MovieCard({ movie, onRequireAuth, onClick }) {
                       backdrop-blur-md border transition-all duration-200
                       focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400
                       active:scale-90 disabled:opacity-60
-                      ${liked
-                        ? "bg-rose-500/20 border-rose-400/50 scale-105"
-                        : "bg-black/40 border-white/20 hover:bg-black/60 hover:border-white/40 hover:scale-110"
+                      ${
+                        liked
+                          ? "bg-rose-500/20 border-rose-400/50 scale-105"
+                          : "bg-black/40 border-white/20 hover:bg-black/60 hover:border-white/40 hover:scale-110"
                       }`}
         >
           <HeartIcon filled={liked} />
@@ -150,9 +164,10 @@ export default function MovieCard({ movie, onRequireAuth, onClick }) {
                       text-[10px] font-semibold transition-all duration-200
                       focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400
                       active:scale-[0.97] disabled:opacity-60
-                      ${inWatchlist
-                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25"
-                        : "bg-violet-600 text-white border border-violet-500 hover:bg-violet-500 shadow shadow-violet-600/25"
+                      ${
+                        inWatchlist
+                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25"
+                          : "bg-violet-600 text-white border border-violet-500 hover:bg-violet-500 shadow shadow-violet-600/25"
                       }`}
         >
           {inWatchlist ? <CheckIcon /> : <PlusIcon />}

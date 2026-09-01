@@ -19,7 +19,8 @@ import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from predict import load_artifacts, recommend, search_titles
+from predict import load_artifacts, load_foldin_artifacts, recommend, recommend_new_movie, search_titles
+from tmdb_client import fetch_movie_features
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("ml-service")
@@ -44,6 +45,8 @@ try:
     log.info("Loading model artifacts from %s", MODEL_DIR)
     ARTIFACTS = load_artifacts(MODEL_DIR)
     log.info("Loaded %d movies", len(ARTIFACTS["movies"]))
+    # Load fold-in artifacts (optional — cv.pkl + vectors.pkl)
+    load_foldin_artifacts(ARTIFACTS, MODEL_DIR)
 except Exception as exc:                      # noqa: BLE001 - surfaced via /health
     LOAD_ERROR = str(exc)
     log.error("Failed to load artifacts: %s", exc)
@@ -94,6 +97,13 @@ def get_recommendations():
     top_n = max(1, min(MAX_TOP_N, top_n))
 
     result = recommend(ARTIFACTS, title=title, movie_id=movie_id, top_n=top_n)
+
+    # ── Fold-in: try to recommend for movies NOT in the dataset ──
+    if not result["recommendations"] and movie_id is not None:
+        tmdb_data = fetch_movie_features(movie_id)
+        if tmdb_data:
+            log.info("Fold-in: building tags for '%s' (TMDB %s)", tmdb_data.get("title"), movie_id)
+            result = recommend_new_movie(ARTIFACTS, tmdb_data, top_n=top_n)
 
     if not result["recommendations"]:
         # 404 with near-miss suggestions is more useful than a bare "not found";

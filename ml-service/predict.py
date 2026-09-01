@@ -6,12 +6,21 @@ loaded once at service start, so requests are pure lookups rather than model
 fits. Resolution of an incoming movie to a dataset row is deliberately
 forgiving: callers pass TMDB ids and titles that may not match the dataset's
 spelling exactly.
+
+For movies NOT in the dataset (newer releases), a "fold-in" path is available:
+the movie's features are fetched from TMDB, converted to a tags vector using the
+saved CountVectorizer, and compared against all existing movie vectors.
 """
 
+import logging
 import os
 import pickle
 import re
 from difflib import get_close_matches
+
+from sklearn.metrics.pairwise import cosine_similarity
+
+log = logging.getLogger("ml-service")
 
 # Titles below this similarity ratio are not considered a match
 FUZZY_CUTOFF = 0.6
@@ -77,7 +86,38 @@ def load_artifacts(model_dir: str) -> dict:
         "similarity": similarity,
         "id_index": id_index,
         "title_index": title_index,
+        # Fold-in artifacts (optional — loaded below)
+        "cv": None,
+        "vectors": None,
     }
+
+
+def load_foldin_artifacts(artifacts: dict, model_dir: str) -> None:
+    """
+    Load the CountVectorizer and raw feature vectors needed for fold-in.
+
+    These are optional: if they are missing the service still works for movies
+    in the dataset, but new movies will get no recommendations.
+
+    Mutates ``artifacts`` in place — sets the ``cv`` and ``vectors`` keys.
+    """
+    cv_path = os.path.join(model_dir, "cv.pkl")
+    vectors_path = os.path.join(model_dir, "vectors.pkl")
+
+    if not os.path.exists(cv_path) or not os.path.exists(vectors_path):
+        log.warning(
+            "Fold-in artifacts not found (cv.pkl / vectors.pkl). "
+            "New movies outside the dataset will not get recommendations."
+        )
+        return
+
+    with open(cv_path, "rb") as f:
+        artifacts["cv"] = pickle.load(f)
+
+    with open(vectors_path, "rb") as f:
+        artifacts["vectors"] = pickle.load(f)
+
+    log.info("Fold-in artifacts loaded (cv + vectors)")
 
 
 def resolve_index(artifacts: dict, title: str = None, movie_id=None):
@@ -168,3 +208,127 @@ def search_titles(artifacts: dict, query: str, limit: int = 10) -> list:
         if key in normalised
     ]
     return matches[:limit]
+
+
+# ---------------------------------------------------------------------------
+# Fold-in: recommend movies for titles NOT in the pre-computed dataset
+# ---------------------------------------------------------------------------
+
+def _stem(word: str) -> str:
+    """
+    Apply a simple suffix-stripping stemmer to approximate what the original
+    training notebook used (likely nltk.stem.PorterStemmer).
+
+    We import PorterStemmer lazily so the module still works if nltk is not
+    installed (fold-in just won't be available).
+    """
+    try:
+        from nltk.stem.porter import PorterStemmer
+    except ImportError:
+        # Fallback: return the word lowercased without stemming.  The
+        # CountVectorizer will still match many words even without perfect
+        # stemming, so recommendations will be reasonable (just not optimal).
+        return word.lower()
+
+    # Cache the stemmer instance on the function object
+    if not hasattr(_stem, "_stemmer"):
+        _stem._stemmer = PorterStemmer()
+    return _stem._stemmer.stem(word)
+
+
+def build_tags_from_tmdb(tmdb_data: dict) -> str:
+    """
+    Build a tags string from TMDB feature data, matching the format used during
+    training.
+
+    The training tags are structured as::
+
+        <stemmed overview> <genres no-spaces> <keywords no-spaces>
+        <cast-names-no-spaces> <director-name-no-spaces>
+
+    Example output::
+
+        "a listless wade wilson toil away in civilian life..."
+        "action comedi sciencefict superhero marvel..."
+        "ryanreynold hughjackman emmacorrin shawnlevi"
+
+    :param tmdb_data: dict from ``tmdb_client.fetch_movie_features()``
+    :returns: single space-separated tags string
+    """
+    parts = []
+
+    # 1. Overview — stem each word
+    overview = tmdb_data.get("overview", "")
+    if overview:
+        words = re.sub(r"[^\w\s]", "", overview.lower()).split()
+        parts.extend(_stem(w) for w in words)
+
+    # 2. Genres — lowercase, remove spaces within each genre name
+    for genre in tmdb_data.get("genres", []):
+        parts.append(genre.lower().replace(" ", ""))
+
+    # 3. Keywords — lowercase, remove spaces
+    for kw in tmdb_data.get("keywords", []):
+        parts.append(kw.lower().replace(" ", ""))
+
+    # 4. Cast (top 3) — concatenate first+last name, lowercase, no spaces
+    for name in tmdb_data.get("cast", [])[:3]:
+        parts.append(name.lower().replace(" ", ""))
+
+    # 5. Director — concatenate name, lowercase, no spaces
+    director = tmdb_data.get("director", "")
+    if director:
+        parts.append(director.lower().replace(" ", ""))
+
+    return " ".join(parts)
+
+
+def recommend_new_movie(artifacts: dict, tmdb_data: dict, top_n: int = 5) -> dict:
+    """
+    Fold-in recommendation for a movie not in the pre-computed dataset.
+
+    Builds a tags vector using the saved CountVectorizer, computes cosine
+    similarity against all existing movie vectors, and returns the top N.
+
+    :param artifacts: the loaded model artifacts (must include ``cv`` and ``vectors``)
+    :param tmdb_data: dict from ``tmdb_client.fetch_movie_features()``
+    :param top_n: number of recommendations to return
+    :returns: same shape as ``recommend()`` output
+    """
+    cv = artifacts.get("cv")
+    vectors = artifacts.get("vectors")
+
+    if cv is None or vectors is None:
+        log.warning("Fold-in artifacts (cv/vectors) not loaded — cannot recommend new movie")
+        return {"matched_title": None, "strategy": None, "recommendations": []}
+
+    tags = build_tags_from_tmdb(tmdb_data)
+    if not tags.strip():
+        return {"matched_title": None, "strategy": None, "recommendations": []}
+
+    # Vectorize using the SAME vocabulary as training
+    new_vector = cv.transform([tags]).toarray()  # shape: (1, 5000)
+
+    # Compute similarity against all existing movies
+    sims = cosine_similarity(new_vector, vectors)[0]  # shape: (4806,)
+
+    # Sort descending, take top N
+    top_indices = sims.argsort()[::-1][:max(1, int(top_n))]
+
+    movies = artifacts["movies"]
+    recommendations = []
+    for idx in top_indices:
+        entry = movies.iloc[int(idx)]
+        recommendations.append({
+            "title": str(entry["title"]),
+            "movie_id": int(entry["movie_id"]) if "movie_id" in movies.columns else None,
+            "similarity_score": round(float(sims[idx]), 4),
+        })
+
+    matched_title = tmdb_data.get("title", "Unknown")
+
+    return {
+        "matched_title": str(matched_title),
+        "strategy": "fold_in",
+        "recommendations": recommendations,
+    }
